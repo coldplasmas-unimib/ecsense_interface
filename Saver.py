@@ -46,10 +46,12 @@ class Saver:
         self.saving = True
         self.file = open( self.filename, "w", buffering = 1 )
 
-        self.write("Time")
+        self.file.write("Time[s]")
         for sens in self.connectedSens:
-            self.file.write(f",{sens.tag}-{sens.type}-{sens.maxrange}{sens.unit}")
-        self.write('\n')
+            self.file.write(f",{sens.tag}-{sens.ser.gas}-{sens.ser.maxrange}{sens.ser.unit}")
+            self.file.write(f",{sens.tag}-temp-C")
+            self.file.write(f",{sens.tag}-humid-RH%")
+        self.file.write('\n')
 
         self.thread = threading.Thread(target=self.save_thrd)
         self.thread.start()
@@ -72,16 +74,19 @@ class Saver:
 
     def save_thrd(self):
 
-        last_i = { i: sens.lastI() for i, sens in self.connectedSens }
+        last_i = { i: sens.lastI() for i, sens in enumerate( self.connectedSens ) }
 
         while( self.saving ):
-            allUpdated = not np.any( [ last_i[i] == sens.lastI() for i, sens in self.connectedSens ] )
+            allUpdated = not np.any( [ last_i[i] == sens.lastI() for i, sens in enumerate( self.connectedSens ) ] )
 
             if( not allUpdated ):
                 time.sleep(0.1)
                 continue
             
-            self.file.write( f"{datetime.now().timestamp():.0f}")
-            for sens in self.connectedSens:
+            self.file.write( f"{datetime.now().timestamp():.4f}")
+            for i, sens in enumerate( self.connectedSens ):
                 self.file.write( "," + sens.getLastValue( str = True ) )
+                self.file.write( "," + sens.getLastTemp( str = True ) )
+                self.file.write( "," + sens.getLastHumid( str = True ) )
+                last_i[ i ] = sens.lastI()
             self.file.write( '\n' )

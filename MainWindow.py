@@ -70,7 +70,6 @@ class MainWindow:
                     self.window[f'sens:{id}'].update( visible = False )
 
             self.saver.parse_events(event, values, self.window)
-            self.confsaver.parse_events(event, values, self.window)
 
             if( len( self.connectedSens ) > 0 ):
 
@@ -88,10 +87,10 @@ class MainWindow:
         if (newSens):
             self.saveSens(**newSens)
 
-    def saveSens(self, port, gas, tag):
+    def saveSens(self, port, tag):
         try:
             self.Sens_ID += 1
-            newSens = ECSense.Sens(port, gas, tag, axis=self.axis,
+            newSens = ECSense.ECSense(port, tag, axis=self.axis,
                              saver=self.saver, ID=self.Sens_ID)
         except SerialException as e:
             sg.popup_error("Impossibile connettersi alla porta")
@@ -99,6 +98,5 @@ class MainWindow:
 
         self.connectedSens.append(newSens)
         self.window.extend_layout(self.window['main:col'], newSens.layout)
-        newSens.bind_events(self.window)
         self.window['main:cnum'].update(len(self.connectedSens))
         self.axis.legend()

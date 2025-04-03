@@ -2,9 +2,11 @@ import PySimpleGUI as sg
 from serial.tools import list_ports
 from SerialInterface import SerialInterface
 
+
 class AvailablePort:
 
     def __init__(self, port):
+        self.port = port
         self.data = port + " - " + SerialInterface.testPort(port)
 
     def __str__(self):
@@ -24,7 +26,7 @@ class AddSensWindow:
                 [sg.Input(
                     default_text=f"Sens{len(alreadyConn)+1}", key="addSens:tag")],
                 [sg.Button('Salva', key='addSens:save'), sg.Text('Errore', text_color='red',
-                                                                key='addSens:error', visible=False)]
+                                                                 key='addSens:error', visible=False)]
             ])
         ]]
 
@@ -34,7 +36,8 @@ class AddSensWindow:
         self.alreadyConn = alreadyConn
 
     def refresh_ports(self):
-        ports = [ AvailablePort(p.device) for p in list_ports.comports() if p.device not in self.alreadyConn]
+        ports = [AvailablePort(p.device) for p in list_ports.comports(
+        ) if p.device not in self.alreadyConn]
         self.window['addSens:ports_combo'].update(
             values=[p for p in ports], value=(ports[0] if len(ports) > 0 else ""))
 
